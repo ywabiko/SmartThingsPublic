@@ -65,7 +65,7 @@ def motionDetectedHandler(evt) {
 }
 
 def motionStoppedHandler(evt) {
-	if (themotions.every { it.value == "active" })
+	if (themotions.every { it.value == "inactive" })
     {
 		runIn(600, scheduledHandler, [overwrite: true])
 	}
