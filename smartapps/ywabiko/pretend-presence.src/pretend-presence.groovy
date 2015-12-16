@@ -49,21 +49,27 @@ def updated() {
 
 def initialize() {
     update_schedule();
-    runin = next_starttime - now();
+    def runin = next_starttime - now();
     log.debug "initialize: scheduling first turnOn: ${runin}"
     runIn(runin, turnOnHandler)
 }
 
+@groovy.transform.Field int offset_start
+@groovy.transform.Field int offset_end
+@groovy.transform.Field Date next_starttime
+@groovy.transform.Field Date next_endtime
+
 def update_schedule() {
-    offset_start = random.nextInt(variation*2)-variation
-    offset_end   = random.nextInt(variation*2)-variation
-    next_startime = starttime + offset_start
+    Random random = new Random()
+    offset_start = random.nextInt(variation_start*2)-variation_start
+    offset_end   = random.nextInt(variation_end*2)-variation_end
+    next_starttime = starttime + offset_start
     next_endtime  = endtime + offset_end
     log.debug "update_schedule: ${offset_start} ${offset_end} ${next_startime} ${next_endtime}"
 }
 
 def turnOnHandler(evt) {
-    runin = next_endtime - now();
+    def runin = next_endtime - now();
     log.debug "turnOnHandler: scheduling next turnOff: ${runin}"
     runIn(runin, turnOffHandler)
 }
@@ -72,9 +78,9 @@ def turnOffHandler(evt) {
     theswitches.each { it.off() }
 
     update_schedule();
-    runin = next_starttime - now();
+    def runin = next_starttime - now();
     log.debug "turnOffHandler: scheduling next turnOn: ${runin}"
-    runin(runin, turnOnHandler)
+    runIn(runin, turnOnHandler)
 }
 
 
