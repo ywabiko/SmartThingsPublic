@@ -15,36 +15,66 @@
  */
 definition(
     name: "Pretend Presence",
-    namespace: "ywabiko",
-    author: "Yasuhiro Wabiko",
-    description: "Turn on lights randomly at nighttime to pretend presence during vacation.",
-    category: "My Apps",
-    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-    iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
+           namespace: "ywabiko",
+           author: "Yasuhiro Wabiko",
+           description: "Turn on lights randomly to pretend presence during vacation.",
+           category: "My Apps",
+           iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
+           iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
+           iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
 
 preferences {
-	section("Title") {
-		// TODO: put inputs here
-	}
+    section("Light Switches") {
+        input "theswitches", "capability.switch", required: true, title:"Where?", multiple:true
+        input "starttime", "time", required:true, title:"Start Time?"
+        input "endtime",   "time", required:true, title:"End Time?"
+        input "variation_start", "number", required:true, title:"Variation for Start (in min)?"
+        input "variation_end", "number", required:true, title:"Variation for End (in min)?"
+    }
 }
 
 def installed() {
-	log.debug "Installed with settings: ${settings}"
+    log.debug "Installed with settings: ${settings}"
 
-	initialize()
+    initialize()
 }
 
 def updated() {
-	log.debug "Updated with settings: ${settings}"
+    log.debug "Updated with settings: ${settings}"
 
-	unsubscribe()
-	initialize()
+    unsubscribe()
+    initialize()
 }
 
 def initialize() {
-	// TODO: subscribe to attributes, devices, locations, etc.
+    update_schedule();
+    runin = next_starttime - now();
+    log.debug "initialize: scheduling first turnOn: ${runin}"
+    runIn(runin, turnOnHandler)
 }
 
-// TODO: implement event handlers
+def update_schedule() {
+    offset_start = random.nextInt(variation*2)-variation
+    offset_end   = random.nextInt(variation*2)-variation
+    next_startime = starttime + offset_start
+    next_endtime  = endtime + offset_end
+    log.debug "update_schedule: ${offset_start} ${offset_end} ${next_startime} ${next_endtime}"
+}
+
+def turnOnHandler(evt) {
+    runin = next_endtime - now();
+    log.debug "turnOnHandler: scheduling next turnOff: ${runin}"
+    runIn(runin, turnOffHandler)
+}
+
+def turnOffHandler(evt) {
+    theswitches.each { it.off() }
+
+    update_schedule();
+    runin = next_starttime - now();
+    log.debug "turnOffHandler: scheduling next turnOn: ${runin}"
+    runin(runin, turnOnHandler)
+}
+
+

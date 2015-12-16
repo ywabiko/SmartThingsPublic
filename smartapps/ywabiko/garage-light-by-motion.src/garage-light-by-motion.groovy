@@ -13,6 +13,7 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  */
+
 definition(
     name: "Garage Light By Motion",
            namespace: "ywabiko",
@@ -45,19 +46,16 @@ def updated() {
 }
 
 def initialize() {
-    for (themotion in themotions) {
-        subscribe(themotion, "motion.active",   motionDetectedHandler)
-        subscribe(themotion, "motion.inactive", motionStoppedHandler)
+    themotions.each { 
+        subscribe(it, "motion.active",   motionDetectedHandler)
+        subscribe(it, "motion.inactive", motionStoppedHandler)
     }
 }
 
 def motionDetectedHandler(evt) {
     if (themotions.any { it.value == "active" })
     {
-        for (theswitch in theswitches)
-        {
-            theswitch.on();
-        }
+        theswitches.each { it.on() }
         // leave the lights on for another 10 min.
         // This timeout will be extended as long as any sensor keeps reporting motion.
     	runIn(600, scheduledHandler, [overwrite: true])
@@ -67,13 +65,10 @@ def motionDetectedHandler(evt) {
 def motionStoppedHandler(evt) {
     if (themotions.every { it.value == "inactive" })
     {
-        runIn(600, scheduledHandler, [overwrite: true])
+        runIn(60, scheduledHandler, [overwrite: true])
     }
 }
 
 def scheduledHandler(evt) {
-    for (theswitch in theswitches)
-    {
-       	theswitch.off();
-    }
+    theswitches.each { it.off() }
 }
