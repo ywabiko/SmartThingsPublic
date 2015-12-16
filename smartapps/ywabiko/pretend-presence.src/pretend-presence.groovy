@@ -13,6 +13,7 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  */
+import groovy.time.TimeCategory
 definition(
     name: "Pretend Presence",
            namespace: "ywabiko",
@@ -61,10 +62,13 @@ def initialize() {
 
 def update_schedule() {
     Random random = new Random()
-    offset_start = random.nextInt(variation_start*2)-variation_start
-    offset_end   = random.nextInt(variation_end*2)-variation_end
-    next_starttime = starttime + offset_start
-    next_endtime  = endtime + offset_end
+    offset_start = random.nextInt(variation_start*2) - variation_start
+    offset_end   = random.nextInt(variation_end*2) - variation_end
+
+	use (TimeCategory) {
+		next_starttime = starttime + offset_start.minutes
+    	next_endtime  = endtime + offset_end.minutes
+	}
     log.debug "update_schedule: ${offset_start} ${offset_end} ${next_startime} ${next_endtime}"
 }
 
