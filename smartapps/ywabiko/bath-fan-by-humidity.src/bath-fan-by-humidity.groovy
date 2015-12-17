@@ -48,7 +48,9 @@ def updated() {
 }
 
 def initialize() {
-    subscribe(thehumids, "humidity", humidityHandler)
+    thehumids.each {
+        subscribe(it, "humidity", humidityHandler)
+    }
     log.debug "initialize: threshold is ${threshold}"
 }
 
