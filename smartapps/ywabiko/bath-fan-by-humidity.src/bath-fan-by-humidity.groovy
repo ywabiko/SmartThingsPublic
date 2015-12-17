@@ -15,36 +15,51 @@
  */
 definition(
     name: "Bath Fan By Humidity",
-    namespace: "ywabiko",
-    author: "Yasuhiro Wabiko",
-    description: "Turn on bath fan while humidity is above a threshold.",
-    category: "My Apps",
-    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-    iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
+           namespace: "ywabiko",
+           author: "Yasuhiro Wabiko",
+           description: "Turn on bath fan while humidity is above a threshold.",
+           category: "My Apps",
+           iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
+           iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
+           iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
 
 preferences {
-	section("Title") {
-		// TODO: put inputs here
-	}
+    section("Humidity Sensors") {
+        input "thehumids", "capability.relativeHumidityMeasurement", required: true, title:"Where?", multiple:true
+        input "threshold",  "number", title: "Humidity?"
+    }
+    section("Fan Switches") {
+        input "theswitches", "capability.switch", required: true, title:"Where?", multiple:true
+    }
 }
 
 def installed() {
-	log.debug "Installed with settings: ${settings}"
+    log.debug "Installed with settings: ${settings}"
 
-	initialize()
+    initialize()
 }
 
 def updated() {
-	log.debug "Updated with settings: ${settings}"
+    log.debug "Updated with settings: ${settings}"
 
-	unsubscribe()
-	initialize()
+    unsubscribe()
+    initialize()
 }
 
 def initialize() {
-	// TODO: subscribe to attributes, devices, locations, etc.
+    subscribe(thehumids, "humidity", humidityHandler)
+    log.debug "initialize: threshold is ${threshold}"
 }
 
-// TODO: implement event handlers
+def humidityHandler(evt) {
+    log.debug "humidityHandler: humidity = ${evt.value}"
+
+    if (Double.parseDouble(evt.value.replace("%", "")) > threshold) {
+        log.debug "humidityHandler: turning on fans."
+        theswitches.each { it.on() }
+    } else if (Double.parseDouble(evt.value.replace("%", "")) <= threshold ) {
+        log.debug "humidityHandler: turning off fans."
+        theswitches.each { it.off() }
+    }
+}
